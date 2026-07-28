@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sân Cỏ Vàng — Bóng Đá 11vs11</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="serverToast" class="server-toast"></div>
+
+  <div class="screen active" id="authScreen">
+    <div class="brand">SÂN CỎ <span>VÀNG</span></div>
+    <div class="subtitle">Đăng nhập để lưu tiến trình online, kết bạn &amp; leo bảng xếp hạng</div>
+    <div style="width:min(380px,92vw); background:linear-gradient(160deg,var(--panel-3),var(--panel-2)); border:1px solid #1c4a32; border-radius:14px; padding:20px; box-shadow:0 10px 24px rgba(0,0,0,.35);">
+      <div class="tactic-row" style="margin:0 0 14px;">
+        <button class="tactic-btn active" id="authTabLogin" style="flex:1;">Đăng nhập</button>
+        <button class="tactic-btn" id="authTabRegister" style="flex:1;">Đăng ký</button>
+      </div>
+      <div id="authRegisterNameWrap" style="display:none; margin-bottom:10px;">
+        <input type="text" id="authDisplayName" placeholder="Tên hiển thị (để bạn bè tìm bạn)" maxlength="20"
+          style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #2c5d42; background:#0c2419; color:var(--ink); font-family:'Manrope',sans-serif; font-size:13px;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <input type="email" id="authEmail" placeholder="Email" autocomplete="email"
+          style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #2c5d42; background:#0c2419; color:var(--ink); font-family:'Manrope',sans-serif; font-size:13px;">
+      </div>
+      <div style="margin-bottom:6px;">
+        <input type="password" id="authPassword" placeholder="Mật khẩu (từ 6 ký tự)" autocomplete="current-password"
+          style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #2c5d42; background:#0c2419; color:var(--ink); font-family:'Manrope',sans-serif; font-size:13px;">
+      </div>
+      <div id="authMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin:6px 0;"></div>
+      <button class="btn" id="authSubmitBtn" style="width:100%; margin-top:4px;">Đăng nhập</button>
+      <div style="display:flex; align-items:center; gap:8px; margin:14px 0; color:var(--muted); font-size:11px;">
+        <div style="flex:1; height:1px; background:#1c4a32;"></div>HOẶC<div style="flex:1; height:1px; background:#1c4a32;"></div>
+      </div>
+      <button class="btn ghost" id="authGoogleBtn" style="width:100%;">🔵 Đăng nhập với Google</button>
+      <button class="btn ghost" id="authSkipBtn" style="width:100%; margin-top:8px; font-size:11px; padding:8px 12px;">Chơi offline (không đồng bộ, không bạn bè/BXH)</button>
+    </div>
+  </div>
+
+  <div class="screen" id="pickTeamScreen">
+    <div class="brand">SÂN CỎ <span>VÀNG</span></div>
+    <div class="subtitle">Chọn đội tuyển của bạn</div>
+    <div class="team-grid" id="teamGridSelf"></div>
+  </div>
+
+  <div class="screen" id="friendsScreen">
+    <div class="brand" style="font-size:26px;">BẠN <span>BÈ</span></div>
+    <div class="subtitle">Tìm theo tên hiển thị, kết bạn để xem đội hình &amp; thành tích của nhau</div>
+    <div style="display:flex; gap:8px; width:min(500px,92vw); margin-bottom:14px;">
+      <input type="text" id="friendSearchInput" placeholder="Nhập đúng tên hiển thị..." style="flex:1; padding:10px 12px; border-radius:8px; border:1px solid #2c5d42; background:#0c2419; color:var(--ink); font-family:'Manrope',sans-serif; font-size:13px;">
+      <button class="btn" id="friendSearchBtn" style="margin:0; padding:10px 18px;">🔎 Tìm &amp; kết bạn</button>
+    </div>
+    <div id="friendMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-bottom:10px; text-align:center;"></div>
+    <div id="friendRequestsBox" class="end-stats" style="width:min(600px,92vw); display:none;"></div>
+    <div id="pendingGiftsBox" class="end-stats" style="width:min(600px,92vw); display:none;"></div>
+    <div class="hub-note" style="margin-top:14px;">Bạn bè của bạn — bấm 🎁 để tặng 1 thẻ trong đội của bạn</div>
+    <div class="squad-list" id="friendsList" style="width:min(900px,92vw);"></div>
+    <button class="btn ghost" id="backBtnFriends">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="giftPickScreen">
+    <div class="brand" style="font-size:26px;">TẶNG <span>THẺ</span></div>
+    <div class="subtitle" id="giftTargetLabel">Chọn 1 thẻ trong đội để tặng</div>
+    <div class="squad-list" id="giftCardList" style="width:min(900px,92vw);"></div>
+    <div id="giftMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnGiftPick" style="margin-top:10px;">← Huỷ</button>
+  </div>
+
+  <div class="screen" id="leaderboardScreen">
+    <div class="brand" style="font-size:26px;">BẢNG <span>XẾP HẠNG</span></div>
+    <div class="subtitle">Cập nhật mỗi khi có người chơi lưu tiến trình</div>
+    <div class="tactic-row" id="lbTabRow">
+      <button class="tactic-btn active" data-lb="ovr">💪 OVR đội hình</button>
+      <button class="tactic-btn" data-lb="wallet">💰 Nhiều tiền nhất</button>
+      <button class="tactic-btn" data-lb="wins">🏆 Thắng nhiều nhất</button>
+    </div>
+    <div id="leaderboardMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin:6px 0; text-align:center;"></div>
+    <div class="end-stats" id="leaderboardList" style="width:min(600px,92vw); text-align:left;"></div>
+    <button class="btn ghost" id="backBtnLeaderboard">← Về đội hình</button>
+  </div>
+
+
+  <div class="screen with-sidebar" id="squadHubScreen">
+    <nav class="hub-sidebar">
+      <div class="hub-sidebar-brand">SÂN CỎ <span>VÀNG</span></div>
+      <button class="hub-nav-btn active" id="toSquadBtn">🏠 Đội hình của tôi</button>
+      <button class="hub-nav-btn" id="toMarketBtn">🏪 Chợ chuyển nhượng</button>
+      <button class="hub-nav-btn" id="toServerShopBtn">🌐 Server Shop</button>
+      <button class="hub-nav-btn" id="toBazaarBtn">🏪 Bazaar</button>
+      <button class="hub-nav-btn" id="toShopBtn">🛍️ Shop</button>
+      <button class="hub-nav-btn" id="toOppBtn">⚽ Chọn đối thủ</button>
+      <button class="hub-nav-btn" id="toScoutBtn">🔭 Scout cầu thủ</button>
+      <button class="hub-nav-btn" id="toWorldCupBtn">🏆 World Cup</button>
+      <button class="hub-nav-btn" id="toFusionBtn">🔀 Fusion</button>
+      <button class="hub-nav-btn" id="toIndexBtn">📖 Bộ sưu tập</button>
+      <button class="hub-nav-btn" id="toGuildBtn">🛡️ Guild</button>
+      <button class="hub-nav-btn" id="toFriendsBtn">👥 Bạn bè</button>
+      <button class="hub-nav-btn" id="toChatBtn">💬 Chat</button>
+      <button class="hub-nav-btn" id="toLeaderboardBtn">🏆 BXH</button>
+      <button class="hub-nav-btn" id="toAuctionBtn">🔨 Đấu giá</button>
+      <button class="hub-nav-btn" id="toPromoBtn">🎟️ Nhập Code</button>
+      <button class="hub-nav-btn" id="toSettingsBtn">⚙️ Cài đặt</button>
+      <button class="hub-nav-btn" id="toAdminBtn" style="display:none;">👑 Admin Panel</button>
+      <div class="hub-sidebar-spacer"></div>
+      <button class="hub-nav-btn ghost" id="backBtnHub">← Đổi đội của bạn</button>
+      <button class="hub-nav-btn ghost" id="logoutBtn" style="display:none;">🚪 Đăng xuất</button>
+    </nav>
+    <div class="hub-main">
+      <div class="brand" style="font-size:26px;">ĐỘI HÌNH <span>CỦA BẠN</span></div>
+      <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+      <div class="hub-note" id="syncStatusNote">Tiền, đội hình &amp; bộ sưu tập được tự động lưu vào máy này — mở lại vẫn còn</div>
+      <div class="player-grid" id="squadHubList"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="scoutScreen">
+    <div class="brand" style="font-size:26px;">SCOUT <span>CẦU THỦ</span></div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle" style="max-width:640px; text-align:center; white-space:normal; letter-spacing:.4px;">Mua thẳng gói theo ý muốn, hoặc đá 1 trận để nhận gói NGẪU NHIÊN — đối thủ càng khó tỉ lệ ra gói hiếm càng cao</div>
+    <div class="end-stats" id="scoutMatchInfoBox" style="width:min(640px,92vw); text-align:left;"></div>
+    <div id="scoutOwnerInfoBox" style="width:min(640px,92vw); text-align:left;"></div>
+    <button class="btn" id="scoutPlayMatchBtn">⚽ Đá 1 trận để nhận gói ngẫu nhiên</button>
+    <div class="market-list" id="scoutList" style="margin-top:14px;"></div>
+    <div id="scoutMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnScout">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="indexScreen">
+    <div class="brand" style="font-size:26px;">BỘ SƯU TẬP <span>CẦU THỦ</span></div>
+    <div class="subtitle" style="max-width:640px; text-align:center; white-space:normal; letter-spacing:.4px;">Toàn bộ cầu thủ có thể sở hữu qua Chợ &amp; Scout — cầu thủ đã từng sở hữu sẽ được mở khoá vĩnh viễn trong danh sách này</div>
+    <div id="indexProgress" style="font-weight:800; color:var(--amber); margin:6px 0 10px;"></div>
+    <div id="indexList" style="width:min(960px,94vw); max-height:64vh; overflow-y:auto; padding:4px;"></div>
+    <button class="btn ghost" id="backBtnIndex">← Về đội hình</button>
+  </div>
+
+  <div id="packOpenOverlay" class="pack-overlay">
+    <div class="pack-stage">
+      <div class="pack-card" id="packCardEl">
+        <div class="pack-card-face pack-front">
+          <div class="pack-shine"></div>
+          <div class="pack-icon" id="packIconEl">🔵</div>
+          <div class="pack-name" id="packNameLabelEl">Gói Rare</div>
+          <div class="pack-tap-hint">Chạm vào thẻ để mở</div>
+        </div>
+        <div class="pack-card-face pack-back" id="packBackEl"></div>
+      </div>
+    </div>
+    <button class="btn ghost" id="packOverlayCloseBtn" style="display:none;">Đóng</button>
+  </div>
+
+  <div class="screen" id="worldCupScreen">
+    <div class="brand" style="font-size:26px;">SỰ KIỆN <span>WORLD CUP</span></div>
+    <div class="subtitle" id="wcSubtitle">Thắng cả 3 vòng để vô địch</div>
+    <div class="end-stats" id="wcBracketBox" style="width:min(560px,92vw);"></div>
+    <div class="vs-row" id="wcVsRow"></div>
+    <button class="btn" id="wcPlayBtn">Đá vòng đấu</button>
+    <button class="btn ghost" id="wcExitBtn">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="marketScreen">
+    <div class="brand" style="font-size:26px;">CHỢ <span>CHUYỂN NHƯỢNG</span></div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle">Danh sách sẽ đổi mới sau mỗi trận · Cầu thủ 🌟 huyền thoại (OVR 90+) cực hiếm xuất hiện</div>
+    <div class="market-list" id="marketList"></div>
+    <div id="marketMsg"></div>
+    <button class="btn ghost" id="backBtnMarket">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="serverShopScreen">
+    <div class="brand" style="font-size:26px;">SERVER <span>SHOP</span></div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle" style="max-width:640px; text-align:center; white-space:normal;">🌐 Hàng do Admin Owner spawn riêng cho TOÀN SERVER — ai nhanh tay mua trước sẽ được, hết stock là hết!</div>
+    <div class="market-list" id="serverShopList" style="width:min(900px,92vw);"></div>
+    <div id="serverShopMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnServerShop">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="adminScreen">
+    <div class="brand" style="font-size:26px;">ADMIN <span>PANEL</span></div>
+    <div class="subtitle" style="max-width:640px; text-align:center; white-space:normal;">👑 Chỉ Admin Owner (Rainz) mới truy cập được — spawn cầu thủ độ hiếm bất kỳ thẳng vào Chợ chuyển nhượng cho TOÀN SERVER</div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; margin:10px 0;">
+      <select id="adminRaritySelect" style="padding:10px 14px; border-radius:10px; font-weight:800; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42;">
+        <option value="normal">⚪ Thường</option>
+        <option value="legend">🌟 Huyền thoại</option>
+        <option value="future">🔵 Future</option>
+        <option value="superior">🌈 Superior</option>
+        <option value="forbidden">⬛⬜ Forbidden</option>
+        <option value="owner">👑 Owner</option>
+        <option value="winner26">🏆 Winner26 (Vàng-Đỏ)</option>
+      </select>
+      <select id="adminCardSelect" style="padding:10px 14px; border-radius:10px; font-weight:800; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42; min-width:200px;"></select>
+      <input id="adminPriceInput" type="number" placeholder="Giá (💰) — để trống = giá gốc" style="padding:10px 14px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink); width:200px;">
+      <input id="adminQtyInput" type="number" min="1" max="50" value="1" placeholder="Số lượng" style="padding:10px 14px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink); width:110px;">
+      <button class="btn" id="adminSpawnBtn" style="box-shadow:0 6px 0 #4c1d95;">🚀 Spawn vào Chợ (Toàn Server)</button>
+    </div>
+    <div id="adminMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-bottom:10px; text-align:center;"></div>
+    <div class="hub-note" style="margin-top:0;">Danh sách đang hiển thị ở Chợ chuyển nhượng cho mọi người chơi:</div>
+    <div class="market-list" id="adminGlobalShopList" style="width:min(900px,92vw);"></div>
+
+    <div class="hub-note" style="margin-top:18px;">📌 Ghim thông báo lên đầu Chat (mọi người đều thấy):</div>
+    <div style="display:flex; gap:8px; width:min(640px,92vw); margin-bottom:6px;">
+      <input id="adminPinInput" type="text" maxlength="200" placeholder="Nội dung thông báo ghim..." style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="adminPinBtn" style="margin:0;">📌 Ghim</button>
+      <button class="btn ghost" id="adminUnpinBtn" style="margin:0;">Bỏ ghim</button>
+    </div>
+
+    <div class="hub-note" style="margin-top:14px;">🚫 Cấm/Bỏ cấm chat theo tên người dùng:</div>
+    <div style="display:flex; gap:8px; width:min(640px,92vw); margin-bottom:6px;">
+      <input id="adminBanNameInput" type="text" placeholder="Tên đăng nhập (username)..." style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="adminBanBtn" style="margin:0; background:linear-gradient(160deg,#ff8a8a,#e14b4b);">Cấm chat</button>
+      <button class="btn ghost" id="adminUnbanBtn" style="margin:0;">Bỏ cấm</button>
+    </div>
+
+    <div class="hub-note" style="margin-top:14px;">🧾 Lịch sử giao dịch Server Shop gần đây:</div>
+    <div class="end-stats" id="adminTxLog" style="width:min(900px,92vw); text-align:left; font-size:12px;"></div>
+
+    <div class="hub-note" style="margin-top:14px;">🏁 Mùa giải hiện tại: <b id="adminSeasonNum">-</b></div>
+    <button class="btn" id="adminResetSeasonBtn" style="background:linear-gradient(160deg,#ffb08a,#e1734b);">🏁 Kết thúc mùa & Reset Bảng Xếp Hạng</button>
+
+    <div class="hub-note" style="margin-top:18px;">🔨 Tạo phiên Đấu giá mới:</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; width:min(900px,92vw); margin-bottom:6px;">
+      <select id="adminAuctionRaritySelect" style="padding:8px 10px; border-radius:8px; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42;">
+        <option value="legend">🌟 Huyền thoại</option>
+        <option value="future">🔵 Future</option>
+        <option value="superior">🌈 Superior</option>
+        <option value="forbidden">⬛⬜ Forbidden</option>
+        <option value="owner">👑 Owner</option>
+      </select>
+      <select id="adminAuctionCardSelect" style="padding:8px 10px; border-radius:8px; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42; min-width:180px;"></select>
+      <input id="adminAuctionStartPrice" type="number" placeholder="Giá khởi điểm" style="width:130px; padding:8px 10px; border-radius:8px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <input id="adminAuctionDuration" type="number" placeholder="Số phút" value="60" style="width:100px; padding:8px 10px; border-radius:8px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="adminAuctionCreateBtn" style="margin:0; background:linear-gradient(160deg,#ffcf7f,#e0941f);">Tạo phiên</button>
+    </div>
+
+    <div class="hub-note" style="margin-top:14px;">🎟️ Tạo Promocode mới:</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; width:min(900px,92vw); margin-bottom:6px;">
+      <input id="adminPromoCodeInput" type="text" placeholder="Mã code (VD: TET2026)" style="width:160px; padding:8px 10px; border-radius:8px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink); text-transform:uppercase;">
+      <select id="adminPromoTypeSelect" style="padding:8px 10px; border-radius:8px; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42;">
+        <option value="gold">💰 Tiền vàng</option>
+        <option value="card">🎴 Thẻ cầu thủ ngẫu nhiên</option>
+      </select>
+      <input id="adminPromoAmountInput" type="number" placeholder="Số tiền vàng" style="width:130px; padding:8px 10px; border-radius:8px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <select id="adminPromoTierSelect" style="padding:8px 10px; border-radius:8px; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42;">
+        <option value="normal">⚪ Thường</option>
+        <option value="legend">🌟 Huyền thoại</option>
+        <option value="future">🔵 Future</option>
+        <option value="superior">🌈 Superior</option>
+        <option value="forbidden">⬛⬜ Forbidden</option>
+        <option value="owner">👑 Owner</option>
+      </select>
+      <input id="adminPromoMaxUses" type="number" placeholder="Số lượt tối đa" value="100" style="width:120px; padding:8px 10px; border-radius:8px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="adminPromoCreateBtn" style="margin:0; background:linear-gradient(160deg,#7ff0b3,#1fc47a);">Tạo Code</button>
+    </div>
+
+    <button class="btn ghost" id="backBtnAdmin" style="margin-top:16px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="fusionScreen">
+    <div class="brand" style="font-size:26px;">FUSION <span>NÂNG CẤP THẺ</span></div>
+    <div class="subtitle" style="max-width:600px; text-align:center; white-space:normal;">Ghép 3 thẻ CÙNG độ hiếm trong đội của bạn để đổi lấy 1 thẻ ngẫu nhiên ở độ hiếm cao hơn (không áp dụng cho 👑 Owner)</div>
+    <select id="fusionTierSelect" style="padding:10px 14px; border-radius:10px; font-weight:800; background:var(--panel-2); color:var(--ink); border:1px solid #2c5d42; margin-bottom:12px;">
+      <option value="normal">⚪ Thường → 🌟 Huyền thoại</option>
+      <option value="legend">🌟 Huyền thoại → 🔵 Future</option>
+      <option value="future">🔵 Future → 🌈 Superior</option>
+      <option value="superior">🌈 Superior → ⬛⬜ Forbidden</option>
+    </select>
+    <div class="squad-list" id="fusionCardList" style="width:min(900px,92vw);"></div>
+    <div style="margin:12px 0; font-size:13px;">Đã chọn: <b id="fusionSelectedCount">0</b>/3</div>
+    <button class="btn" id="fusionConfirmBtn" style="background:linear-gradient(160deg,#e0a3ff,#a63ff0);">🔀 Ghép 3 thẻ này</button>
+    <div id="fusionMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnFusion" style="margin-top:10px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="guildScreen">
+    <div class="brand" style="font-size:26px;">GUILD</div>
+    <div id="guildNoGuildBox" style="display:none; width:min(640px,92vw);">
+      <div style="background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:16px; text-align:left; margin-bottom:14px;">
+        <b>🛡️ Tạo Guild mới</b> — phí 5.000 💰
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input id="guildNameInput" type="text" maxlength="24" placeholder="Tên Guild..." style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-3); color:var(--ink);">
+          <button class="btn" id="guildCreateBtn" style="margin:0;">Tạo</button>
+        </div>
+      </div>
+      <div class="hub-note">Hoặc tham gia Guild có sẵn:</div>
+      <div class="squad-list" id="guildBrowseList" style="width:100%;"></div>
+    </div>
+    <div id="guildInGuildBox" style="display:none; width:min(640px,92vw); text-align:left;">
+      <div style="background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:16px; margin-bottom:12px;">
+        <div style="font-size:20px; font-weight:900;" id="guildTitleName"></div>
+        <div style="font-size:12px; color:var(--muted);" id="guildMemberCount"></div>
+        <div style="margin-top:10px; padding:10px; border-radius:10px; background:var(--panel-3);" id="guildRewardBox"></div>
+      </div>
+      <div class="hub-note">Thành viên:</div>
+      <div class="squad-list" id="guildMemberList" style="width:100%; margin-bottom:12px;"></div>
+      <div id="guildJoinRequestsBox" style="display:none;"></div>
+      <div id="guildColorSettingsBox" style="display:none;"></div>
+      <button class="btn" id="guildChatBtn">💬 Chat Guild</button>
+      <button class="btn ghost" id="guildLeaveBtn">🚪 Rời Guild</button>
+    </div>
+    <div id="guildMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin:10px 0; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnGuild">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="auctionScreen">
+    <div class="brand" style="font-size:26px;">ĐẤU <span>GIÁ</span></div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle" style="max-width:600px; text-align:center; white-space:normal;">Admin Owner thỉnh thoảng mở phiên đấu giá cho thẻ cực hiếm — trả giá cao nhất khi hết giờ sẽ thắng!</div>
+    <div class="market-list" id="auctionList" style="width:min(900px,92vw);"></div>
+    <div id="auctionMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnAuction">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="promoScreen">
+    <div class="brand" style="font-size:26px;">NHẬP <span>CODE</span></div>
+    <div class="subtitle">Nhập mã khuyến mãi để nhận thưởng miễn phí</div>
+    <div style="width:min(420px,92vw); display:flex; gap:8px;">
+      <input id="promoInput" type="text" placeholder="Nhập code..." style="flex:1; padding:12px 14px; border-radius:12px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink); text-transform:uppercase;">
+      <button class="btn" id="promoRedeemBtn" style="margin:0;">Nhận</button>
+    </div>
+    <div id="promoMsg" style="min-height:18px; font-size:13px; color:var(--amber); margin-top:10px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnPromo" style="margin-top:16px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="dmScreen">
+    <div class="brand" style="font-size:24px;">TIN NHẮN <span id="dmPeerName">RIÊNG</span></div>
+    <div id="dmBox" style="width:min(560px,92vw); height:min(48vh,380px); overflow-y:auto; background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:12px; text-align:left; display:flex; flex-direction:column; gap:8px;"></div>
+    <div style="width:min(560px,92vw); display:flex; gap:8px; margin-top:10px;">
+      <input id="dmInput" type="text" maxlength="300" placeholder="Nhắn tin riêng..." style="flex:1; padding:12px 14px; border-radius:12px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="dmSendBtn" style="margin:0;">Gửi</button>
+    </div>
+    <button class="btn ghost" id="backBtnDm" style="margin-top:12px;">← Quay lại</button>
+  </div>
+
+  <div class="screen" id="chatScreen">
+    <div class="brand" style="font-size:26px;">CHAT <span>TOÀN SERVER</span></div>
+    <div class="tactic-row" id="chatChannelTabs" style="margin-bottom:10px; flex-wrap:wrap;">
+      <button class="tactic-btn active" data-channel="global">🌐 Toàn Server</button>
+      <button class="tactic-btn" data-channel="team">👕 Đội của tôi</button>
+      <button class="tactic-btn" id="chatGuildTab" data-channel="guild" style="display:none;">🛡️ Guild</button>
+    </div>
+    <div class="subtitle">Trò chuyện cùng mọi người chơi đang online · Top 3 BXH tên vàng lấp lánh · 👑 Admin Owner tên tím</div>
+    <div id="chatPinnedBox" style="display:none; width:min(640px,92vw); background:linear-gradient(160deg,#3a2f0a,#5a4a10); border:1px solid #f6c453; border-radius:12px; padding:10px 14px; margin-bottom:8px; text-align:left; font-size:13px;"></div>
+    <div id="chatBox" style="width:min(640px,92vw); height:min(50vh,420px); overflow-y:auto; background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:12px; text-align:left; display:flex; flex-direction:column; gap:8px;"></div>
+    <div style="width:min(640px,92vw); display:flex; gap:8px; margin-top:10px;">
+      <input id="chatInput" type="text" maxlength="300" placeholder="Nhập tin nhắn rồi Enter..." style="flex:1; padding:12px 14px; border-radius:12px; border:1px solid #2c5d42; background:var(--panel-2); color:var(--ink);">
+      <button class="btn" id="chatSendBtn" style="margin:0;">Gửi</button>
+    </div>
+    <div id="chatMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnChat" style="margin-top:12px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="profileModalScreen" style="z-index:200;">
+    <div style="width:min(440px,92vw); background:var(--panel-2); border:1px solid #2c5d42; border-radius:16px; padding:22px; text-align:left;">
+      <div id="profileModalBody"></div>
+      <div id="profileModalActions" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;"></div>
+      <button class="btn ghost" id="closeProfileModalBtn" style="margin-top:10px; width:100%;">Đóng</button>
+    </div>
+  </div>
+
+  <div class="screen" id="settingsScreen">
+    <div class="brand" style="font-size:26px;">CÀI <span>ĐẶT</span></div>
+    <div style="width:min(480px,92vw); background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:18px; text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div>
+          <b>💬 Chat toàn Server</b>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">Bật để trò chuyện với mọi người chơi khác. Tắt sẽ ẩn nút Chat và ngừng nhận tin nhắn.</div>
+        </div>
+        <button class="btn" id="chatToggleBtn" style="margin:0; min-width:90px;">BẬT</button>
+      </div>
+    </div>
+    <div style="width:min(480px,92vw); background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:18px; text-align:left; margin-top:14px;">
+      <b>🎨 Màu tên trong Chat</b>
+      <div style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Màu xám kèm ?? là màu chưa mở khoá — mua ở Shop hoặc đạt thành tích để mở.</div>
+      <div id="settingsColorGrid" class="color-grid"></div>
+    </div>
+    <button class="btn ghost" id="backBtnSettings" style="margin-top:16px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="shopScreen">
+    <div class="brand" style="font-size:26px;">SHOP</div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle" style="max-width:600px; text-align:center; white-space:normal;">Mua màu tên hiển thị trong Chat — màu Vàng &amp; Tím dành riêng cho Top BXH và Admin Owner, không bán</div>
+    <div id="shopColorGrid" class="color-grid" style="width:min(700px,92vw);"></div>
+    <div id="shopMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:10px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnShop" style="margin-top:16px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="bazaarScreen">
+    <div class="brand" style="font-size:26px;">BAZAAR</div>
+    <div class="wallet-badge">💰 <span class="wallet-badge-val">0</span></div>
+    <div class="subtitle" style="max-width:600px; text-align:center; white-space:normal;">Chợ giữa người chơi — rao bán cầu thủ dự bị với giá tự chọn, chờ người khác mua</div>
+    <div style="width:min(700px,92vw); background:var(--panel-2); border:1px solid #1c4a32; border-radius:14px; padding:14px; text-align:left; margin-bottom:14px;">
+      <b>📤 Rao bán cầu thủ dự bị</b>
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        <select id="bazaarSellSelect" style="flex:1; min-width:180px; padding:10px 12px; border-radius:10px; background:var(--panel-3); color:var(--ink); border:1px solid #2c5d42;"></select>
+        <input id="bazaarSellPrice" type="number" placeholder="Giá bán (💰)" style="width:140px; padding:10px 12px; border-radius:10px; border:1px solid #2c5d42; background:var(--panel-3); color:var(--ink);">
+        <button class="btn" id="bazaarSellBtn" style="margin:0;">Rao bán</button>
+      </div>
+    </div>
+    <div class="hub-note">Gian hàng của tôi:</div>
+    <div id="bazaarMyList" class="player-grid" style="width:min(900px,92vw);"></div>
+    <div class="hub-note">Đang bán trên toàn server:</div>
+    <div id="bazaarList" class="player-grid" style="width:min(900px,92vw);"></div>
+    <div id="bazaarMsg" style="min-height:18px; font-size:12px; color:var(--amber); margin-top:8px; text-align:center;"></div>
+    <button class="btn ghost" id="backBtnBazaar" style="margin-top:12px;">← Về đội hình</button>
+  </div>
+
+  <div class="screen" id="pickOppScreen">
+    <div class="brand" style="font-size:26px;">CHỌN <span>ĐỐI THỦ</span></div>
+    <div class="subtitle" id="oppSubtitle">Số sao càng nhiều, máy càng khó</div>
+    <div class="team-grid" id="teamGridOpp"></div>
+    <button class="btn ghost" id="backBtn">← Đổi đội của bạn</button>
+  </div>
+
+  <div class="screen" id="confirmScreen">
+    <div class="subtitle">Trận đấu</div>
+    <div class="vs-row">
+      <div class="vs-card" id="confirmSelf"></div>
+      <div class="vs-text">VS</div>
+      <div class="vs-card" id="confirmOpp"></div>
+    </div>
+    <div class="subtitle" style="margin-bottom:0;">Chế độ thi đấu</div>
+    <div class="tactic-row" id="modeRow">
+      <button class="tactic-btn mode-btn active" data-mode="manual">🎮 Điều khiển trực tiếp</button>
+      <button class="tactic-btn mode-btn" data-mode="sim">📊 Mô phỏng (Manager)</button>
+    </div>
+    <div class="subtitle" style="margin-bottom:0;">Chọn chiến thuật</div>
+    <div class="tactic-row" id="tacticRow">
+      <button class="tactic-btn" data-tactic="attack">⚡ Tấn công</button>
+      <button class="tactic-btn active" data-tactic="balanced">⚖️ Cân bằng</button>
+      <button class="tactic-btn" data-tactic="defense">🛡️ Phòng thủ</button>
+    </div>
+    <button class="btn" id="startBtn">Bắt đầu trận đấu</button>
+    <button class="btn ghost" id="backBtn2">← Đổi đối thủ</button>
+  </div>
+
+  <div class="screen" id="matchScreen">
+    <div id="hud">
+      <div class="hud-team left"><div class="dot" id="dotA"></div><span id="nameA"></span></div>
+      <div>
+        <div id="score">0 - 0</div>
+        <div id="timer">03:00</div>
+      </div>
+      <div class="hud-team right"><span id="nameB"></span><div class="dot" id="dotB"></div></div>
+    </div>
+    <div style="position:relative;">
+      <canvas id="pitch" width="880" height="520"></canvas>
+      <div id="bannerOverlay"><div id="bannerText"></div></div>
+    </div>
+    <div id="staminaWrap"><div id="staminaFill"></div></div>
+    <div id="cardsInfo">Thẻ phạt: 0</div>
+    <div id="controlsBar">
+      <span><b>W A S D</b> di chuyển</span>
+      <span><span class="key">Click phải</span> chuyền cho cầu thủ gần nhất</span>
+      <span><span class="key">Giữ Click trái</span> rồi thả = sút (giữ lâu hơn = lực mạnh hơn)</span>
+      <span><span class="key">E</span> tắc / cướp bóng (có thể bị phạm lỗi &amp; thẻ phạt)</span>
+      <span><span class="key">Q</span> đổi cầu thủ gần bóng nhất</span>
+      <span><span class="key">R</span> thay người từ đội dự bị</span>
+      <span>Bóng ra biên / phạt góc / phát bóng được tự động xử lý</span>
+    </div>
+  </div>
+
+  <div class="screen" id="simScreen">
+    <div class="brand" style="font-size:26px;">MÔ PHỎNG <span>TRẬN ĐẤU</span></div>
+    <div class="vs-row" id="simVsRow"></div>
+    <div id="simScore" style="font-family:'Anton',sans-serif; font-size:42px; font-weight:400; color:var(--amber); text-shadow:0 0 18px rgba(246,196,83,.4); margin:6px 0 14px;">0 - 0</div>
+    <div class="end-stats" id="simLog" style="text-align:left;"></div>
+    <button class="btn ghost" id="simSkipBtn">⏭ Bỏ qua mô phỏng</button>
+  </div>
+
+  <div class="screen" id="endScreen">
+    <div class="subtitle" id="endTitle">KẾT THÚC TRẬN ĐẤU</div>
+    <div id="endPanel">
+      <div class="finalScore" id="finalScore">0 - 0</div>
+    </div>
+    <div class="end-stats" id="rewardBreakdown"></div>
+    <div class="end-stats" id="goalScorersBox"></div>
+    <div class="end-stats" id="motmBox"></div>
+    <div class="end-stats" id="scoutRevealBox" style="display:none;"></div>
+    <div class="end-stats" id="worldCupBox" style="display:none;"></div>
+    <div class="end-actions">
+      <button class="btn" id="playAgainBtn">Chơi lại</button>
+      <button class="btn ghost" id="toMarketFromEndBtn">🏪 Chợ chuyển nhượng</button>
+      <button class="btn ghost" id="continueWorldCupBtn" style="display:none;">🏆 Tiếp tục World Cup</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase SDK (compat) — dùng cho lưu tiến trình online, đăng nhập, bạn bè, bảng xếp hạng -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>
